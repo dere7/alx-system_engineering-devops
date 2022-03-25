@@ -1,22 +1,20 @@
-#!/usr/bin/env bash
-# Install nginx and start it
-apt-get -y install nginx
+# Setup nginx server
 
-# Firewall setting: Allow Nginx to serve on HTTP
-ufw allow 'Nginx HTTP'
+package { 'nginx':
+  ensure     => 'installed',
+}
 
-# Create a new index.html file that will be used over the default index.nginx-debian.html
-echo "Hello World!" >> /var/www/html/index.html
+file { '/var/www/html/index.html':
+  content => 'Hello World!',
+}
 
-#Give the user  ownership to website files
-chown -R $USER:$USER /var/www/html
-chmod -R 755 /var/www
+exec { 'redirect':
+  provider => shell,
+  command  => 'sudo sed -i "/server_name _;/a location /redirect_me {\\n\\treturn 301 https://google.com; listen 80; \\n\\t}\\n" /etc/nginx/sites-available/default',
+  returns  => [0, 1],
+}
 
-# Redirect to /redirect_me to a youtube video
-sed -i '37i\rewrite ^/redirect_me https://www.youtube.com/watch?v=QH2-TGUlwu4 permanent;' /etc/nginx/sites-available/default
-
-# Setup 404 page
-echo "Ceci n'est pas une page\n" >> /var/www/html/error_404.html
-sed -i '38i\error_page 404 /error_404.html;' /etc/nginx/sites-available/default
-
-service nginx start
+service { 'nginx':
+  ensure  => running,
+  require => Package['nginx'],
+}
