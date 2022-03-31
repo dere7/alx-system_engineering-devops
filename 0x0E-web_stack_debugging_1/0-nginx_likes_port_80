@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # configures nginx
 apt-get install -y nginx
-sed -i '22ilisten [::]:80 default_server;' /etc/nginx/sites-enabled/default
+sed -i "s/8080/80/g" /etc/nginx/sites-enabled/default
+sed -i "s/ ipv6only=on//g" /etc/nginx/sites-enabled/default
 service nginx start
